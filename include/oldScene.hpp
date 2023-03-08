@@ -184,7 +184,7 @@ void InitializeSceneObjects(const char* fileName, std::vector<Mesh>& meshBuffer,
                     return memcmp(this, &other, sizeof(IndexedPrimitive)) > 0;
                 }
             };
-
+            std::cout << shapes.size() << "\n";
             std::map<IndexedPrimitive, uint32_t> indexedPrims;
             for (size_t s = 0; s < shapes.size(); s++)
             {

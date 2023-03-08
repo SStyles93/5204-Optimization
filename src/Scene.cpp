@@ -69,6 +69,7 @@ void Scene::LoadObject(std::string_view fileName)
 		}
 
 		std::map<IndexedPrimitive, std::uint32_t> indexedPrims;
+		std::cout << shapes.size() << "\n";
 		for (size_t shapeIndex = 0; shapeIndex < shapes.size(); shapeIndex++)
 		{
 			const tinyobj::shape_t& currentShape = shapes[shapeIndex];
