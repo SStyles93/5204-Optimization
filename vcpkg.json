@@ -1,0 +1,12 @@
+﻿{
+  "name": "optimisationproject",
+  "version-string": "1.0",
+  "dependencies": [
+    "benchmark",
+    "gtest",
+    "glm",
+    "libpng",
+    "tinyobjloader",
+    "stb"
+  ]
+}
