@@ -18,7 +18,7 @@ find_package(OpenMP REQUIRED)
 #TRACY
 option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
 if(ENABLE_PROFILER)
-add_subdirectory(tracy)
+add_subdirectory(external/tracy)
 endif()
 
 
@@ -32,7 +32,7 @@ target_link_libraries(Rasterizer PUBLIC tinyobjloader::tinyobjloader)
 target_link_libraries(Rasterizer PUBLIC OpenMP::OpenMP_CXX)
 target_link_libraries(Rasterizer PUBLIC fmt::fmt)
 if(ENABLE_PROFILER)
-target_link_libraries(Rasterizer PUBLIC tracy)
+target_link_libraries(Rasterizer PUBLIC TracyClient)
 target_compile_definitions(Rasterizer PUBLIC TRACY_ENABLE)
 endif()
 target_include_directories(Rasterizer PUBLIC ${Stb_INCLUDE_DIR})
