@@ -5,6 +5,11 @@ Scene::Scene()
 	m_Camera = Camera();
 }
 
+Scene::Scene(Camera camera)
+{
+	m_Camera = camera;
+}
+
 Scene::Scene(Scene&& other) noexcept
 {
 	m_Camera = std::move(other.m_Camera);
@@ -69,7 +74,6 @@ void Scene::LoadObject(std::string_view fileName)
 		}
 
 		std::map<IndexedPrimitive, std::uint32_t> indexedPrims;
-		std::cout << shapes.size() << "\n";
 		for (size_t shapeIndex = 0; shapeIndex < shapes.size(); shapeIndex++)
 		{
 			const tinyobj::shape_t& currentShape = shapes[shapeIndex];
@@ -141,6 +145,7 @@ void Scene::LoadObject(std::string_view fileName)
 					VertexInput uniqueVertex = { pos, normal, uv };
 					vertexBuffer.push_back(uniqueVertex);
 				}
+			}
 				// Push new mesh to be rendered in the scene 
 				Mesh mesh;
 				mesh.idxOffset = meshIdxBase;
@@ -148,12 +153,10 @@ void Scene::LoadObject(std::string_view fileName)
 
 				assert((shapes[shapeIndex].mesh.material_ids[0] != -1) && "Mesh missing a material!");
 				mesh.diffuseTexName = materials[currentShape.mesh.material_ids[0]].diffuse_texname; // No per-face material but fixed one
-
 				primitives.push_back(mesh);
-			}
+
 		}
 		std::cout << "Obj " << fileName << " loaded\n";
-		std::cout << "Meshes size is: " << primitives.size() << "\n";
 	}
 	else
 	{

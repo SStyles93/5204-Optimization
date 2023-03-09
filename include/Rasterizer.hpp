@@ -5,25 +5,28 @@ class Rasterizer
 {
 public:
 
-	static constexpr std::uint32_t DEFAULT_WIDTH = 1280u;
-	static constexpr std::uint32_t DEFAULT_HEIGHT = 720u;
+	//3840 x 2160 pixels
+	//static constexpr std::uint32_t DEFAULT_WIDTH = 3840u;
+	//static constexpr std::uint32_t DEFAULT_HEIGHT = 2160u;
+	static constexpr std::uint32_t DEFAULT_WIDTH = 7680u;
+	static constexpr std::uint32_t DEFAULT_HEIGHT = 4320u;
 
 	/// <summary>
 	/// Creates a rasterizer
 	/// </summary>
 	/// <param name="scene">Scene to be given to the rasterizer</param>
-	Rasterizer(Scene scene);
+	Rasterizer(Scene&& scene);
 	/// <summary>
 	/// Creates a Rasterizer
 	/// </summary>
 	/// <param name="scene">scene to be given to the rasterizer</param>
 	/// <param name="height">screen height</param>
 	/// <param name="width">screen width</param>
-	Rasterizer(Scene scene, std::uint32_t width, std::uint32_t height);
+	Rasterizer(Scene&& scene, std::uint32_t width, std::uint32_t height);
 
 	void TransformScene();
 
-	void RenderToPng(const char* filename);
+	void RenderToPng(std::string_view filename);
 
 
 	std::uint32_t GetScreenWidth() { return m_ScreenWidth; }

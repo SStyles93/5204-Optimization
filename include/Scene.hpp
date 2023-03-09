@@ -78,6 +78,7 @@ public:
 	/// Constructor
 	/// </summary>
 	Scene();
+	Scene(Camera camera);
 	Scene(const Scene& other) = delete;
 	Scene(Scene&& other) noexcept;
 	~Scene();

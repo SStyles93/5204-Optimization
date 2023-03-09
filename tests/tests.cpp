@@ -54,3 +54,12 @@ TEST(RasterizerTests, Constructors)
 	EXPECT_EQ(rasterizer.GetScreenHeight(), SCREEN_HEIGHT);
 	EXPECT_EQ(rasterizer.GetScreenWidth(), SCREEN_WIDTH);
 }
+TEST(RasterizerTests, RasterizerInit)
+{
+	Scene scene;
+	Rasterizer rasterizer(std::move(scene));
+	EXPECT_EQ(rasterizer.GetDepthBuffer().at(0), SCREEN_WIDTH * SCREEN_HEIGHT);
+	EXPECT_EQ(rasterizer.GetFrameBuffer().at(0).x, 0);
+	EXPECT_EQ(rasterizer.GetFrameBuffer().at(0).y, 0);
+	EXPECT_EQ(rasterizer.GetFrameBuffer().at(0).z, 0);
+}

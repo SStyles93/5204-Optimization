@@ -1,8 +1,8 @@
 #include "Rasterizer.hpp"
 
-Rasterizer::Rasterizer(Scene scene) : Rasterizer(std::move(scene), DEFAULT_WIDTH, DEFAULT_HEIGHT ){}
+Rasterizer::Rasterizer(Scene&& scene) : Rasterizer(std::move(scene), DEFAULT_WIDTH, DEFAULT_HEIGHT ){}
 
-Rasterizer::Rasterizer(Scene scene, std::uint32_t width, std::uint32_t height) 
+Rasterizer::Rasterizer(Scene&& scene, std::uint32_t width, std::uint32_t height) 
     : m_Scene(std::move(scene)), m_ScreenWidth(width), m_ScreenHeight(height)
 {
     InitBuffers();
@@ -71,6 +71,7 @@ void Rasterizer::TransformScene()
         const int32_t triCount = m_Scene.primitives[i].idxCount / 3;
 
         // Loop over triangles in a given scene.primitives[i] and rasterize them
+        #pragma omp parallel for
         for (int32_t idx = 0; idx < triCount; idx++)
         {
             // Fetch vertex input of next triangle to be rasterized
@@ -136,6 +137,7 @@ void Rasterizer::TransformScene()
             glm::vec3 PUVT = M * glm::vec3(fi0.texCoords.t, fi1.texCoords.t, fi2.texCoords.t);
 
             // Start rasterizing by looping over pixels to output a per-pixel color
+            #pragma omp parallel for collapse(2)
             for (auto y = 0; y < m_ScreenHeight; y++)
             {
                 for (auto x = 0; x < m_ScreenWidth; x++)
@@ -198,12 +200,12 @@ void Rasterizer::TransformScene()
     std::cout << "All Scene Meshes have been transformed\n";
 }
 
-void Rasterizer::RenderToPng(const char* filename)
+void Rasterizer::RenderToPng(const std::string_view filename)
 {
 	assert(m_FrameBuffer.size() >= (m_ScreenWidth * m_ScreenHeight));
 
 	FILE* pFile = nullptr;
-	fopen_s(&pFile, filename, "wb"); // Use binary mode for writing
+	fopen_s(&pFile, filename.data(), "wb"); // Use binary mode for writing
 	assert(pFile != nullptr);
 
 	// Initialize the PNG writer

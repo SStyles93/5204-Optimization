@@ -11,6 +11,16 @@ find_package(glm CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+
+find_package(OpenMP REQUIRED)
+
+#TRACY
+option(ENABLE_PROFILER "Enable Tracy Profiling" OFF)
+if(ENABLE_PROFILER)
+add_subdirectory(tracy)
+endif()
+
 
 #PROGRAM FILES
 file(GLOB_RECURSE SRC_FILES src/*.cpp include/*.hpp)
@@ -19,6 +29,12 @@ target_link_libraries(Rasterizer PUBLIC benchmark::benchmark benchmark::benchmar
 target_link_libraries(Rasterizer PUBLIC glm::glm)
 target_link_libraries(Rasterizer PUBLIC PNG::PNG)
 target_link_libraries(Rasterizer PUBLIC tinyobjloader::tinyobjloader)
+target_link_libraries(Rasterizer PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(Rasterizer PUBLIC fmt::fmt)
+if(ENABLE_PROFILER)
+target_link_libraries(Rasterizer PUBLIC tracy)
+target_compile_definitions(Rasterizer PUBLIC TRACY_ENABLE)
+endif()
 target_include_directories(Rasterizer PUBLIC ${Stb_INCLUDE_DIR})
 target_include_directories(Rasterizer PUBLIC include/)
 

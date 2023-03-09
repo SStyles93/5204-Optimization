@@ -21,6 +21,8 @@ public:
 
 	Camera();
 
+	void SetNearPlane(float value);
+	void SetFarPlane(float value);
 	/// <summary>
 	/// Sets the position of the eye ("camera")
 	/// </summary>
@@ -39,6 +41,11 @@ public:
 	/// Sets the projection
 	/// </summary>
 	void SetProjection(float);
+
+	void SetMVP();
+
+	void SetupCamera();
+
 	
 	glm::mat4 MVP{};
 
@@ -47,13 +54,10 @@ private:
 	float m_nearPlane = 0.125f;
 	float m_farPlane = 5000.f;
 	float m_projectionAngle = 60.0f;
-	float m_viewAngle = 0.0f;
+	float m_viewAngle = -30.0f;
 
-	/*glm::vec3 m_eye = glm::vec3(0, -8.5, -5);
-	glm::vec3 m_lookat = glm::vec3(20, 2, 1);*/
-
-	glm::vec3 m_eye = glm::vec3(0, 3.75, 6);
-	glm::vec3 m_lookat = glm::vec3(0, 0, 0);
+	glm::vec3 m_eye = glm::vec3(0, -8.5, -5);
+	glm::vec3 m_lookat = glm::vec3(20, 2, 1);
 
 	glm::mat4 m_view{};
 	glm::mat4 m_projection{};
