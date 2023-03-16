@@ -20,13 +20,18 @@
 #include <png.h>
 #include <stb_image.h>
 
+#if TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#endif // TRACY_ENABLE
+
+
 // Silence macro redefinition warnings
 #undef TO_RASTER
 // Transform a given vertex in clip-space [-w,w] to raster-space [0, {w|h}]
 #define TO_RASTER(v) glm::vec4((g_scWidth * (v.x + v.w) / 2), (g_scHeight * (v.w - v.y) / 2), v.z, v.w)
 
-static constexpr std::uint32_t g_scWidth = 1280u;
-static constexpr std::uint32_t g_scHeight = 720u;
+static constexpr std::uint32_t g_scWidth = 3860u;
+static constexpr std::uint32_t g_scHeight = 2160u;
 static constexpr glm::vec3 up(0, 1, 0);
 static constexpr glm::mat4 indentity(1.f);
 
@@ -329,6 +334,9 @@ void Scene()
     // Loop over all objects in the scene and draw them one by one
     for (auto i = 0; i < primitives.size(); i++)
     {
+#if TRACY_ENABLE
+        ZoneScopedN("Meshes");
+#endif
         DrawIndexed(frameBuffer, depthBuffer, vertexBuffer, indexBuffer, primitives[i], MVP, textures[primitives[i].diffuseTexName]);
         std::cout << "Scene Mesh " << i << "/" << primitives.size() << " transformed\n";
     }
@@ -398,8 +406,12 @@ void DrawIndexed(std::vector<glm::vec3>& frameBuffer, std::vector<float>& depthB
     const int32_t triCount = mesh.idxCount / 3;
 
     // Loop over triangles in a given mesh and rasterize them
+    #pragma omp parallel for
     for (int32_t idx = 0; idx < triCount; idx++)
     {
+#if TRACY_ENABLE
+        ZoneScopedN("Tri Calculations");
+#endif
         // Fetch vertex input of next triangle to be rasterized
         const VertexInput& vi0 = vertexBuffer[indexBuffer[mesh.idxOffset + (idx * 3)]];
         const VertexInput& vi1 = vertexBuffer[indexBuffer[mesh.idxOffset + (idx * 3 + 1)]];

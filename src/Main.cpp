@@ -25,6 +25,8 @@ int main()
 	rasterizer.TransformScene();
 	auto file = fmt::format("../../render_backpack_{0}x{1}.png", rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
 	rasterizer.RenderToPng(file);
+
+	//3:28.5 backpack
 }
 
 //#include "oldScene.hpp"
@@ -33,4 +35,5 @@ int main()
 //{
 //	
 //	Scene();
+//	//3:35 backpack
 //}
