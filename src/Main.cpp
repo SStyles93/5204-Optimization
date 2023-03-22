@@ -4,29 +4,22 @@
 
 int main()
 {
-	/*Scene scene;
-	scene.LoadObject("../assets/sponza.obj");
-	Rasterizer rasterizer(std::move(scene));
-	rasterizer.TransformScene();
-	auto file = fmt::format("../../render_scene_{0}x{1}.png", rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
-	rasterizer.RenderToPng(file);*/
+	std::string_view objectName = "sponza";
 
-
-	//Cube render
 	Camera camera;
 	camera.SetNearPlane(0.1f);
 	camera.SetFarPlane(100.f);
-	camera.SetEyePosition(glm::vec3(0, 3.75, 6.5));
-	camera.SetLookDirection(glm::vec3(0, 0, 0));
+	camera.SetEyePosition(glm::vec3(0, 50, 300));
+	camera.SetLookDirection(glm::vec3(0, 50, 0));
+	camera.SetViewAngle(90.0f);
 	camera.SetupCamera();
 	Scene scene(camera);
-	scene.LoadObject("../assets/backpack.obj");
+	scene.LoadObject(fmt::format("../assets/{0}.obj", objectName));
 	Rasterizer rasterizer(std::move(scene));
 	rasterizer.TransformScene();
-	auto file = fmt::format("../../render_backpack_{0}x{1}.png", rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
+	auto file = fmt::format("../../render_{0}_{1}x{2}.png",objectName, rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
 	rasterizer.RenderToPng(file);
 
-	//3:28.5 backpack
 }
 
 //#include "oldScene.hpp"

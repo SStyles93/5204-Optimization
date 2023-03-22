@@ -42,6 +42,8 @@ public:
 	/// </summary>
 	void SetProjection(float);
 
+	void SetViewAngle(const float angle);
+
 	void SetMVP();
 
 	void SetupCamera();
@@ -51,9 +53,10 @@ public:
 
 private:
 
-	float m_nearPlane = 0.125f;
+	float m_nearPlane = 0.01f;
 	float m_farPlane = 5000.f;
-	float m_projectionAngle = 60.0f;
+	//FieldOfView
+	float m_projectionAngle = 30.0f;
 	float m_viewAngle = -30.0f;
 
 	glm::vec3 m_eye = glm::vec3(0, -8.5, -5);

@@ -5,10 +5,14 @@ class Rasterizer
 {
 public:
 
-	static constexpr std::uint32_t DEFAULT_WIDTH = 3840u;
-	static constexpr std::uint32_t DEFAULT_HEIGHT = 2160u;
-	//static constexpr std::uint32_t DEFAULT_WIDTH = 7680u;
-	//static constexpr std::uint32_t DEFAULT_HEIGHT = 4320u;
+	
+	
+	//static constexpr std::uint32_t DEFAULT_WIDTH = 1024u;
+	//static constexpr std::uint32_t DEFAULT_HEIGHT = 768u;
+	//static constexpr std::uint32_t DEFAULT_WIDTH = 3840u;
+	//static constexpr std::uint32_t DEFAULT_HEIGHT = 2160u;
+	static constexpr std::uint32_t DEFAULT_WIDTH = 7680u;
+	static constexpr std::uint32_t DEFAULT_HEIGHT = 4320u;
 
 	/// <summary>
 	/// Creates a rasterizer

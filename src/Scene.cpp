@@ -1,5 +1,9 @@
 #include "Scene.hpp"
 
+//#if TRACY_ENABLE
+//#include "tracy/Tracy.hpp"
+//#endif // TRACY_ENABLE
+
 Scene::Scene()
 {
 	m_Camera = Camera();
@@ -52,9 +56,15 @@ void Scene::LoadObject(std::string_view fileName)
 	bool isLoaded = tinyobj::LoadObj(&attribs, &shapes, &materials, nullptr, &err, fileName.data(), "../assets/", true /*triangulate*/, true /*default_vcols_fallback*/);
 	if (isLoaded)
 	{
+//#if TRACY_ENABLE
+//	ZoneScopedN("LoadObject");
+//#endif
 		//Get all materials
 		for (size_t i = 0; i < materials.size(); i++)
 		{
+//#if TRACY_ENABLE
+//			ZoneScopedN("LoadTextures");
+//#endif
 			const tinyobj::material_t& mat = materials[i];
 
 			std::string_view diffuseTexName = mat.diffuse_texname;
@@ -72,10 +82,12 @@ void Scene::LoadObject(std::string_view fileName)
 				textures[diffuseTexName.data()] = pAlbedo;
 			}
 		}
-
 		std::map<IndexedPrimitive, std::uint32_t> indexedPrims;
 		for (size_t shapeIndex = 0; shapeIndex < shapes.size(); shapeIndex++)
 		{
+//#if TRACY_ENABLE
+//			ZoneScopedN("LoadMeshes");
+//#endif
 			const tinyobj::shape_t& currentShape = shapes[shapeIndex];
 
 			std::uint32_t meshIdxBase = indexBuffer.size();

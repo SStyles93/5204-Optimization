@@ -4,7 +4,6 @@
 #include "tracy/Tracy.hpp"
 #endif // TRACY_ENABLE
 
-
 Rasterizer::Rasterizer(Scene&& scene) : Rasterizer(std::move(scene), DEFAULT_WIDTH, DEFAULT_HEIGHT) {}
 
 Rasterizer::Rasterizer(Scene&& scene, std::uint32_t width, std::uint32_t height)
@@ -73,6 +72,7 @@ bool Rasterizer::EvaluateEdgeFunction(const glm::vec3& E, const glm::vec2& sampl
 
 void Rasterizer::TransformScene()
 {
+	//std::chrono::high_resolution_clock::time_point start;
 
 	for (int i = 0; i < m_Scene.primitives.size(); i++)
 	{
@@ -82,13 +82,22 @@ void Rasterizer::TransformScene()
 		const int32_t triCount = m_Scene.primitives[i].idxCount / 3;
 
 		// Loop over triangles in a given scene.primitives[i] and rasterize them
-		//Time : 3:00.1 (best config for omp
-#pragma omp parallel for
+
+		//Exec.Times, sponza_7680x4320
+		//3920:10.00 NO OPTI
+		//81:05.02 omp
+		//01:00.08 BBTri
+		//00:26.16 BBTri + omp (no params)
+		//00:26.29 BBTri + omp static
+		//00:20.76 BBTri + omp dynamic
+
+#pragma omp parallel for schedule(dynamic) /*schedule(static)*/
 		for (int32_t idx = 0; idx < triCount; idx++)
 		{
 #if TRACY_ENABLE
 			ZoneScopedN("Tri Calculations");
 #endif
+
 			// Fetch vertex input of next triangle to be rasterized
 			const VertexInput& vi0 = m_Scene.vertexBuffer[m_Scene.indexBuffer[m_Scene.primitives[i].idxOffset + (idx * 3)]];
 			const VertexInput& vi1 = m_Scene.vertexBuffer[m_Scene.indexBuffer[m_Scene.primitives[i].idxOffset + (idx * 3 + 1)]];
@@ -118,6 +127,30 @@ void Rasterizer::TransformScene()
 				{ v0Homogen.y, v1Homogen.y, v2Homogen.y},
 				{ v0Homogen.w, v1Homogen.w, v2Homogen.w},
 			};
+
+#pragma region Optimisation (BoundingBox on Triangle)
+
+			float valueX1 = M[0].x / M[2].x;
+			float valueX2 = M[0].y / M[2].y;
+			float valueX3 = M[0].z / M[2].z;
+
+			float valueY1 = M[1].x / M[2].x;
+			float valueY2 = M[1].y / M[2].y;
+			float valueY3 = M[1].z / M[2].z;
+
+			//Create a "Bounding Box" to only loop over pixels in it when doing the EdgeEval
+			int minTriWidth = static_cast<int>(std::min({ valueX1, valueX2, valueX3 }));
+			int maxTriWidth = static_cast<int>(std::max({ valueX1, valueX2, valueX3 }));
+			int minTriHeight = static_cast<int>(std::min({ valueY1, valueY2, valueY3 }));
+			int maxTriHeight = static_cast<int>(std::max({ valueY1, valueY2, valueY3 }));
+
+
+			minTriWidth = std::clamp(minTriWidth, 0, static_cast<int>(m_ScreenWidth));
+			maxTriWidth = std::clamp(maxTriWidth, 0, static_cast<int>(m_ScreenWidth));
+			minTriHeight = std::clamp(minTriHeight, 0, static_cast<int>(m_ScreenHeight));
+			maxTriHeight = std::clamp(maxTriHeight, 0, static_cast<int>(m_ScreenHeight));
+
+#pragma endregion
 
 			// Singular vertex matrix (det(M) == 0.0) means that the triangle has zero area,
 			// which in turn means that it's a degenerate triangle which should not be rendered anyways,
@@ -152,14 +185,14 @@ void Rasterizer::TransformScene()
 			glm::vec3 PUVT = M * glm::vec3(fi0.texCoords.t, fi1.texCoords.t, fi2.texCoords.t);
 
 			// Start rasterizing by looping over pixels to output a per-pixel color
-			for (auto y = 0; y < m_ScreenHeight; y++)
+			for (auto y = minTriHeight; y < maxTriHeight; y++)
+			//for (auto y = 0; y < m_ScreenWidth; y++)
 			{
-#if TRACY_ENABLE
-				ZoneScopedN("EdgeEval");
-#endif
-
-
-				for (auto x = 0; x < m_ScreenWidth; x++)
+//#if TRACY_ENABLE
+//				ZoneScopedN("EdgeEval");
+//#endif
+				for (auto x = minTriWidth; x < maxTriWidth; x++)
+				//for (auto x = 0; x < m_ScreenHeight; x++)
 				{
 					// Sample location at the center of each pixel
 					glm::vec2 sample = { x + 0.5f, y + 0.5f };
@@ -212,17 +245,22 @@ void Rasterizer::TransformScene()
 						}
 					}
 				}
-
-
 			}
 		}
-		std::cout << "Scene Mesh " << i << "/" << m_Scene.primitives.size() << " transformed\n";
+		//std::cout << "Scene Mesh " << i << "/" << m_Scene.primitives.size() << " transformed\n";
 	}
-	std::cout << "All Scene Meshes have been transformed\n";
+	/*std::cout << "All Scene Meshes have been transformed\n";
+	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()/10000.0f << " seconds" << std::endl;*/
 }
 
 void Rasterizer::RenderToPng(const std::string_view filename)
 {
+
+#if TRACY_ENABLE
+	ZoneScopedN("PNG WRITE");
+#endif
+
 	assert(m_FrameBuffer.size() >= (m_ScreenWidth * m_ScreenHeight));
 
 	FILE* pFile = nullptr;
@@ -246,8 +284,12 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 	png_bytep row = (png_bytep)malloc(m_ScreenWidth * 3);
 
 	// Write the image data, row by row
+
 	for (auto y = 0; y < m_ScreenHeight; ++y)
 	{
+#if TRACY_ENABLE
+		ZoneScopedN("Write Row");
+#endif
 		for (auto x = 0; x < m_ScreenWidth; ++x)
 		{
 			// Get the pixel color values, clamped to [0, 255]
@@ -263,8 +305,12 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 
 		// Write the row buffer to the PNG file
 		png_write_row(png_ptr, row);
-		std::cout << "Png line " << y << " had been writen\n";
+		//std::cout << "Png at row: " << y << " was written\n";
 	}
+
+
+
+	std::cout << "Png written\n";
 
 	// Clean up
 	free(row);

@@ -5,6 +5,14 @@ project ("OptimisationProject")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STRANDARD_REQUIRED ON) 
 
+if (MSVC)
+    # MinimumSize/MaximumSpeed flag
+    add_compile_options(/O2 /fp:strict)
+else()
+    # Optimize speed
+    add_compile_options(-ffast-math)
+endif()
+
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)

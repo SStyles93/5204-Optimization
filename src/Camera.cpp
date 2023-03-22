@@ -36,6 +36,12 @@ void Camera::SetView(glm::vec3 position, glm::vec3 direction)
 {
 	m_view = glm::lookAt(position, direction, UP);
 }
+
+void Camera::SetViewAngle(const float angle)
+{
+	m_viewAngle = angle;
+}
+
 void Camera::SetProjection(float angle)
 {
 	m_projection = glm::perspective(
