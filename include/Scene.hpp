@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <chrono>
 #include <vector>
-#include <benchmark/benchmark.h>
 #include <tiny_obj_loader.h>
 #include <png.h>
 #include <stb_image.h>
@@ -28,13 +27,6 @@ struct Texture
 struct VertexInput
 {
 	glm::vec3   pos;
-	glm::vec3   normal;
-	glm::vec2   texCoords;
-};
-
-// Vertex Shader payload, which will be passed to each FragmentShader invocation as input
-struct FragmentInput
-{
 	glm::vec3   normal;
 	glm::vec2   texCoords;
 };

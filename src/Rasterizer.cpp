@@ -27,18 +27,14 @@ void Rasterizer::InitBuffers()
 }
 
 // Vertex Shader to apply perspective projections and also pass vertex attributes to Fragment Shader
-glm::vec4 Rasterizer::VertexShader(const VertexInput& input, const glm::mat4& MVP, FragmentInput& output)
+glm::vec4 Rasterizer::VertexShader(const VertexInput& input, const glm::mat4& MVP)
 {
-	// Simply pass normal and texture coordinates directly to FragmentShader
-	output.normal = input.normal;
-	output.texCoords = input.texCoords;
-
 	// Output a clip-space vec4 that will be used to rasterize parent triangle
 	return (MVP * glm::vec4(input.pos, 1.0f));
 }
 
 // Fragment Shader that will be run at every visible pixel on triangles to shade fragments
-glm::vec3 Rasterizer::FragmentShader(const FragmentInput& input, Texture* pTexture)
+glm::vec3 Rasterizer::FragmentShader(const VertexInput& input, Texture* pTexture)
 {
 	// By using fractional part of texture coordinates only, we will REPEAT (or WRAP) the same texture multiple times
 	uint32_t idxS = static_cast<uint32_t>((input.texCoords.s - static_cast<int64_t>(input.texCoords.s)) * pTexture->width - 0.5f);
@@ -54,25 +50,15 @@ glm::vec3 Rasterizer::FragmentShader(const FragmentInput& input, Texture* pTextu
 	//return (input.normal) * glm::vec3(0.5) + glm::vec3(0.5);
 }
 
-bool Rasterizer::EvaluateEdgeFunction(const glm::vec3& E, const glm::vec2& sample)
+float Rasterizer::EvaluateEdgeFunction(const glm::vec3& E, const glm::vec2& sample)
 {
 	// Interpolate edge function at given sample
-	float result = (E.x * sample.x) + (E.y * sample.y) + E.z;
-
-	// Apply tie-breaking rules on shared vertices in order to avoid double-shading fragments
-	if (result > 0.0f) return true;
-	else if (result < 0.0f) return false;
-
-	if (E.x > 0.f) return true;
-	else if (E.x < 0.0f) return false;
-
-	if ((E.x == 0.0f) && (E.y < 0.0f)) return false;
-	else return true;
+	return (E.x * sample.x) + (E.y * sample.y) + E.z;
 }
 
 void Rasterizer::TransformScene()
 {
-	//std::chrono::high_resolution_clock::time_point start;
+	//auto start = std::chrono::high_resolution_clock::now();
 
 	for (int i = 0; i < m_Scene.primitives.size(); i++)
 	{
@@ -81,17 +67,16 @@ void Rasterizer::TransformScene()
 #endif
 		const int32_t triCount = m_Scene.primitives[i].idxCount / 3;
 
-		// Loop over triangles in a given scene.primitives[i] and rasterize them
+//		//Exec.Times, sponza_7680x4320
+//		//3920:10.00 NO OPTI
+//		//81:05.02 omp
+//		//01:00.08 BBTri
+//		//00:26.16 BBTri + omp (no params)
+//		//00:26.29 BBTri + omp static
+//		//00:20.76 BBTri + omp dynamic
+		//00:14:15 BBTri + omp dynamic + Incremental Edge func.
 
-		//Exec.Times, sponza_7680x4320
-		//3920:10.00 NO OPTI
-		//81:05.02 omp
-		//01:00.08 BBTri
-		//00:26.16 BBTri + omp (no params)
-		//00:26.29 BBTri + omp static
-		//00:20.76 BBTri + omp dynamic
-
-#pragma omp parallel for schedule(dynamic) /*schedule(static)*/
+//		// Loop over triangles in a given scene.primitives[i] and rasterize them
 		for (int32_t idx = 0; idx < triCount; idx++)
 		{
 #if TRACY_ENABLE
@@ -103,15 +88,11 @@ void Rasterizer::TransformScene()
 			const VertexInput& vi1 = m_Scene.vertexBuffer[m_Scene.indexBuffer[m_Scene.primitives[i].idxOffset + (idx * 3 + 1)]];
 			const VertexInput& vi2 = m_Scene.vertexBuffer[m_Scene.indexBuffer[m_Scene.primitives[i].idxOffset + (idx * 3 + 2)]];
 
-			// To collect VertexShader payload
-			FragmentInput fi0;
-			FragmentInput fi1;
-			FragmentInput fi2;
-
 			// Invoke VertexShader for each vertex of the triangle to transform them from object-space to clip-space (-w, w)
-			glm::vec4 v0Clip = VertexShader(vi0, m_Scene.GetCamera().MVP, fi0);
-			glm::vec4 v1Clip = VertexShader(vi1, m_Scene.GetCamera().MVP, fi1);
-			glm::vec4 v2Clip = VertexShader(vi2, m_Scene.GetCamera().MVP, fi2);
+			glm::mat MVP = m_Scene.GetCamera().MVP;
+			glm::vec4 v0Clip = VertexShader(vi0, MVP);
+			glm::vec4 v1Clip = VertexShader(vi1, MVP);
+			glm::vec4 v2Clip = VertexShader(vi2, MVP);
 
 			// Apply viewport transformation
 			// Notice that we haven't applied homogeneous division and are still utilizing homogeneous coordinates
@@ -176,34 +157,35 @@ void Rasterizer::TransformScene()
 			glm::vec3 Z = M * glm::vec3(v0Clip.z, v1Clip.z, v2Clip.z);
 
 			// Calculate normal interpolation vector
-			glm::vec3 PNX = M * glm::vec3(fi0.normal.x, fi1.normal.x, fi2.normal.x);
-			glm::vec3 PNY = M * glm::vec3(fi0.normal.y, fi1.normal.y, fi2.normal.y);
-			glm::vec3 PNZ = M * glm::vec3(fi0.normal.z, fi1.normal.z, fi2.normal.z);
+			glm::vec3 PNX = M * glm::vec3(vi0.normal.x, vi1.normal.x, vi2.normal.x);
+			glm::vec3 PNY = M * glm::vec3(vi0.normal.y, vi1.normal.y, vi2.normal.y);
+			glm::vec3 PNZ = M * glm::vec3(vi0.normal.z, vi1.normal.z, vi2.normal.z);
 
 			// Calculate UV interpolation vector
-			glm::vec3 PUVertexShader = M * glm::vec3(fi0.texCoords.s, fi1.texCoords.s, fi2.texCoords.s);
-			glm::vec3 PUVT = M * glm::vec3(fi0.texCoords.t, fi1.texCoords.t, fi2.texCoords.t);
+			glm::vec3 PUVertexShader = M * glm::vec3(vi0.texCoords.s, vi1.texCoords.s, vi2.texCoords.s);
+			glm::vec3 PUVT = M * glm::vec3(vi0.texCoords.t, vi1.texCoords.t, vi2.texCoords.t);
 
-			// Start rasterizing by looping over pixels to output a per-pixel color
+			// Start rasterizing by looping over pixels in the bounding box to output a per-pixel color
+			#pragma omp parallel for collapse(2) schedule(dynamic)
 			for (auto y = minTriHeight; y < maxTriHeight; y++)
-			//for (auto y = 0; y < m_ScreenWidth; y++)
 			{
-//#if TRACY_ENABLE
-//				ZoneScopedN("EdgeEval");
-//#endif
+#if TRACY_ENABLE
+				ZoneScopedN("EdgeEval");
+#endif
+
+				//Evaluate Edge for the x0,y (instead of scanline we use Incremental edge func.)
+				glm::vec2 sample = { minTriWidth + 0.5f , y + 0.5f };
+				float Ei1 = EvaluateEdgeFunction(E0, sample);
+				float Ei2 = EvaluateEdgeFunction(E1, sample);
+				float Ei3 = EvaluateEdgeFunction(E2, sample);
+
 				for (auto x = minTriWidth; x < maxTriWidth; x++)
-				//for (auto x = 0; x < m_ScreenHeight; x++)
 				{
 					// Sample location at the center of each pixel
 					glm::vec2 sample = { x + 0.5f, y + 0.5f };
 
-					// Evaluate edge functions at current fragment
-					bool inside0 = EvaluateEdgeFunction(E0, sample);
-					bool inside1 = EvaluateEdgeFunction(E1, sample);
-					bool inside2 = EvaluateEdgeFunction(E2, sample);
-
 					// If sample is "inside" of all three half-spaces bounded by the three edges of the triangle, it's 'on' the triangle
-					if (inside0 && inside1 && inside2)
+					if(Ei1 > 0.0f && Ei2 > 0.0f && Ei3 > 0.0f)
 					{
 						// Interpolate 1/w at current fragment
 						float oneOverW = (C.x * sample.x) + (C.y * sample.y) + C.z;
@@ -215,10 +197,11 @@ void Rasterizer::TransformScene()
 						float zOverW = (Z.x * sample.x) + (Z.y * sample.y) + Z.z;
 						float z = zOverW * w;
 
-						if (z <= m_DepthBuffer[x + y * m_ScreenWidth])
+						int index = x + y * m_ScreenWidth;
+						if (z <= m_DepthBuffer[index])
 						{
 							// Depth test passed; update depth buffer value
-							m_DepthBuffer[x + y * m_ScreenWidth] = z;
+							m_DepthBuffer[index] = z;
 
 							// Interpolate normal
 							float nxOverW = (PNX.x * sample.x) + (PNX.y * sample.y) + PNX.z;
@@ -229,38 +212,34 @@ void Rasterizer::TransformScene()
 							float uOverW = (PUVertexShader.x * sample.x) + (PUVertexShader.y * sample.y) + PUVertexShader.z;
 							float vOverW = (PUVT.x * sample.x) + (PUVT.y * sample.y) + PUVT.z;
 
-							// Final vertex attributes to be passed to FragmentShader
-							glm::vec3 normal = glm::vec3(nxOverW, nyOverW, nzOverW) * w; // {nx/w, ny/w, nz/w} * w -> {nx, ny, nz}
-							glm::vec2 texCoords = glm::vec2(uOverW, vOverW) * w; // {u/w, v/w} * w -> {u, v}
-
-							// Pass interpolated normal & texture coordinates to FragmentShader
-							FragmentInput FragmentShaderInput = { normal, texCoords };
+							VertexInput vertexInput;
+							vertexInput.normal = glm::vec3(nxOverW, nyOverW, nzOverW) * w;
+							vertexInput.texCoords = glm::vec2(uOverW, vOverW) * w;
 
 							// Invoke fragment shader to output a color for each fragment
 							Texture* pTexture = m_Scene.textures.at(m_Scene.primitives[i].diffuseTexName);
-							glm::vec3 outputColor = FragmentShader(FragmentShaderInput, pTexture);
+							glm::vec3 outputColor = FragmentShader(vertexInput, pTexture);
 
 							// Write new color at this fragment
-							m_FrameBuffer[x + y * m_ScreenWidth] = outputColor;
+							m_FrameBuffer[index] = outputColor;
 						}
 					}
+					//Increment Egde position for all x on the y scanline (Incremental edge func.)
+					Ei1 += E0.x;
+					Ei2 += E1.x;
+					Ei3 += E2.x;
 				}
 			}
 		}
-		//std::cout << "Scene Mesh " << i << "/" << m_Scene.primitives.size() << " transformed\n";
 	}
 	/*std::cout << "All Scene Meshes have been transformed\n";
 	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()/10000.0f << " seconds" << std::endl;*/
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start)/1000.0f;
+	std::cout << duration.count() << " seconds" << std::endl;*/
 }
 
 void Rasterizer::RenderToPng(const std::string_view filename)
 {
-
-#if TRACY_ENABLE
-	ZoneScopedN("PNG WRITE");
-#endif
-
 	assert(m_FrameBuffer.size() >= (m_ScreenWidth * m_ScreenHeight));
 
 	FILE* pFile = nullptr;
@@ -287,9 +266,6 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 
 	for (auto y = 0; y < m_ScreenHeight; ++y)
 	{
-#if TRACY_ENABLE
-		ZoneScopedN("Write Row");
-#endif
 		for (auto x = 0; x < m_ScreenWidth; ++x)
 		{
 			// Get the pixel color values, clamped to [0, 255]
@@ -310,7 +286,7 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 
 
 
-	std::cout << "Png written\n";
+	//std::cout << "Png written\n";
 
 	// Clean up
 	free(row);

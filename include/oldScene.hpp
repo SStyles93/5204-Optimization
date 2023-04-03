@@ -30,8 +30,8 @@
 // Transform a given vertex in clip-space [-w,w] to raster-space [0, {w|h}]
 #define TO_RASTER(v) glm::vec4((g_scWidth * (v.x + v.w) / 2), (g_scHeight * (v.w - v.y) / 2), v.z, v.w)
 
-static constexpr std::uint32_t g_scWidth = 3860u;
-static constexpr std::uint32_t g_scHeight = 2160u;
+static constexpr auto g_scWidth = 1280u;
+static constexpr auto g_scHeight = 720u;
 static constexpr glm::vec3 up(0, 1, 0);
 static constexpr glm::mat4 indentity(1.f);
 

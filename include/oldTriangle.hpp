@@ -1,4 +1,24 @@
 #pragma once
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cassert>
+#include <cstdint>
+#include <chrono>
+#include <vector>
+
+#define GLM_FORCE_INLINE
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <benchmark/benchmark.h>
+#include <tiny_obj_loader.h>
+#include <png.h>
+#include <stb_image.h>
 
 // Frame buffer dimensions
 static constexpr auto g_scWidth = 1280u;

@@ -4,13 +4,16 @@
 class Rasterizer
 {
 public:
-
-	
 	
 	//static constexpr std::uint32_t DEFAULT_WIDTH = 1024u;
 	//static constexpr std::uint32_t DEFAULT_HEIGHT = 768u;
+	
+	//static constexpr std::uint32_t DEFAULT_WIDTH = 1920u;
+	//static constexpr std::uint32_t DEFAULT_HEIGHT = 1080u;
+	
 	//static constexpr std::uint32_t DEFAULT_WIDTH = 3840u;
 	//static constexpr std::uint32_t DEFAULT_HEIGHT = 2160u;
+	 
 	static constexpr std::uint32_t DEFAULT_WIDTH = 7680u;
 	static constexpr std::uint32_t DEFAULT_HEIGHT = 4320u;
 
@@ -30,7 +33,6 @@ public:
 	void TransformScene();
 
 	void RenderToPng(std::string_view filename);
-
 
 	std::uint32_t GetScreenWidth() { return m_ScreenWidth; }
 	std::uint32_t GetScreenHeight() { return m_ScreenHeight; }
@@ -52,10 +54,10 @@ private:
 
 	void InitBuffers();
 
-    glm::vec4 VertexShader(const VertexInput& input, const glm::mat4& MVP, FragmentInput& output);
+    glm::vec4 VertexShader(const VertexInput& input, const glm::mat4& MVP);
 
-	glm::vec3 FragmentShader(const FragmentInput& input, Texture* pTexture);
+	glm::vec3 FragmentShader(const VertexInput& input, Texture* pTexture);
 
-	bool EvaluateEdgeFunction(const glm::vec3& E, const glm::vec2& sample);
+	[[nodiscard]] float EvaluateEdgeFunction(const glm::vec3& E, const glm::vec2& sample);
 
 };

@@ -17,16 +17,16 @@ int main()
 	scene.LoadObject(fmt::format("../assets/{0}.obj", objectName));
 	Rasterizer rasterizer(std::move(scene));
 	rasterizer.TransformScene();
-	auto file = fmt::format("../../render_{0}_{1}x{2}.png",objectName, rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
+	auto file = fmt::format("../../render_{0}_{1}x{2}.png", objectName, rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
 	rasterizer.RenderToPng(file);
-
 }
 
+//#include "oldTriangle.hpp"
+//#include "oldCube.hpp"
+//#define STB_IMAGE_IMPLEMENTATION
 //#include "oldScene.hpp"
 //
 //int main()
 //{
-//	
 //	Scene();
-//	//3:35 backpack
 //}
