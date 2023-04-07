@@ -24,7 +24,7 @@
       "variables": [
         {
           "name": "ENABLE_PROFILER",
-          "value": "True",
+          "value": "False",
           "type": "BOOL"
         }
       ]
@@ -42,7 +42,7 @@
       "variables": [
         {
           "name": "ENABLE_PROFILER",
-          "value": "True",
+          "value": "False",
           "type": "BOOL"
         }
       ]

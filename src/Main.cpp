@@ -7,12 +7,15 @@ int main()
 	std::string_view objectName = "sponza";
 
 	Camera camera;
-	camera.SetNearPlane(0.1f);
-	camera.SetFarPlane(100.f);
-	camera.SetEyePosition(glm::vec3(0, 50, 300));
-	camera.SetLookDirection(glm::vec3(0, 50, 0));
-	camera.SetViewAngle(90.0f);
-	camera.SetupCamera();
+	if (objectName != "sponza")
+	{
+		camera.SetNearPlane(0.1f);
+		camera.SetFarPlane(100.f);
+		camera.SetEyePosition(glm::vec3(0, 5, 10));
+		camera.SetLookDirection(glm::vec3(0, 0, 0));
+		camera.SetViewAngle(45.0f);
+		camera.SetupCamera();
+	}
 	Scene scene(camera);
 	scene.LoadObject(fmt::format("../assets/{0}.obj", objectName));
 	Rasterizer rasterizer(std::move(scene));

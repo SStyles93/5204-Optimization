@@ -67,16 +67,16 @@ void Rasterizer::TransformScene()
 #endif
 		const int32_t triCount = m_Scene.primitives[i].idxCount / 3;
 
-//		//Exec.Times, sponza_7680x4320
-//		//3920:10.00 NO OPTI
-//		//81:05.02 omp
-//		//01:00.08 BBTri
-//		//00:26.16 BBTri + omp (no params)
-//		//00:26.29 BBTri + omp static
-//		//00:20.76 BBTri + omp dynamic
+		//Exec.Times, sponza_7680x4320
+		//3920:10.00 NO OPTI
+		//81:05.02 omp
+		//01:00.08 BBTri
+		//00:26.16 BBTri + omp (no params)
+		//00:26.29 BBTri + omp static
+		//00:20.76 BBTri + omp dynamic
 		//00:14:15 BBTri + omp dynamic + Incremental Edge func.
 
-//		// Loop over triangles in a given scene.primitives[i] and rasterize them
+		// Loop over triangles in a given scene.primitives[i] and rasterize them
 		for (int32_t idx = 0; idx < triCount; idx++)
 		{
 #if TRACY_ENABLE
@@ -109,6 +109,13 @@ void Rasterizer::TransformScene()
 				{ v0Homogen.w, v1Homogen.w, v2Homogen.w},
 			};
 
+			// Singular vertex matrix (det(M) == 0.0) means that the triangle has zero area,
+			// which in turn means that it's a degenerate triangle which should not be rendered anyways,
+			// whereas (det(M) > 0) implies a back-facing triangle so we're going to skip such primitives
+			float det = glm::determinant(M);
+			if (det >= 0.0f)
+				continue;
+
 #pragma region Optimisation (BoundingBox on Triangle)
 
 			float valueX1 = M[0].x / M[2].x;
@@ -132,14 +139,7 @@ void Rasterizer::TransformScene()
 			maxTriHeight = std::clamp(maxTriHeight, 0, static_cast<int>(m_ScreenHeight));
 
 #pragma endregion
-
-			// Singular vertex matrix (det(M) == 0.0) means that the triangle has zero area,
-			// which in turn means that it's a degenerate triangle which should not be rendered anyways,
-			// whereas (det(M) > 0) implies a back-facing triangle so we're going to skip such primitives
-			float det = glm::determinant(M);
-			if (det >= 0.0f)
-				continue;
-
+			
 			// Compute the inverse of vertex matrix to use it for setting up edge & constant functions
 			M = inverse(M);
 
@@ -185,7 +185,7 @@ void Rasterizer::TransformScene()
 					glm::vec2 sample = { x + 0.5f, y + 0.5f };
 
 					// If sample is "inside" of all three half-spaces bounded by the three edges of the triangle, it's 'on' the triangle
-					if(Ei1 > 0.0f && Ei2 > 0.0f && Ei3 > 0.0f)
+					if (Ei1 > 0.0f && Ei2 > 0.0f && Ei3 > 0.0f)
 					{
 						// Interpolate 1/w at current fragment
 						float oneOverW = (C.x * sample.x) + (C.y * sample.y) + C.z;
@@ -232,10 +232,10 @@ void Rasterizer::TransformScene()
 			}
 		}
 	}
-	/*std::cout << "All Scene Meshes have been transformed\n";
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start)/1000.0f;
-	std::cout << duration.count() << " seconds" << std::endl;*/
+	//std::cout << "All Scene Meshes have been transformed\n";
+	//auto end = std::chrono::high_resolution_clock::now();
+	//auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start)/1000.0f;
+	//std::cout << duration.count() << " seconds" << std::endl;
 }
 
 void Rasterizer::RenderToPng(const std::string_view filename)
@@ -266,8 +266,15 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 
 	for (auto y = 0; y < m_ScreenHeight; ++y)
 	{
+#if TRACY_ENABLE
+		ZoneScopedN("Write Row");
+#endif
+		//#pragma omp parallel for schedule(dynamic)
 		for (auto x = 0; x < m_ScreenWidth; ++x)
 		{
+#if TRACY_ENABLE
+			ZoneScopedN("Eval X");
+#endif
 			// Get the pixel color values, clamped to [0, 255]
 			uint32_t r = static_cast<uint32_t>(255 * glm::clamp(m_FrameBuffer[y * m_ScreenWidth + x].r, 0.0f, 1.0f));
 			uint32_t g = static_cast<uint32_t>(255 * glm::clamp(m_FrameBuffer[y * m_ScreenWidth + x].g, 0.0f, 1.0f));

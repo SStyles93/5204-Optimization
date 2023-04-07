@@ -57,10 +57,10 @@ private:
 	float m_farPlane = 5000.f;
 	//FieldOfView
 	float m_projectionAngle = 30.0f;
-	float m_viewAngle = -30.0f;
+	float m_viewAngle = 90.0f;
 
-	glm::vec3 m_eye = glm::vec3(0, -8.5, -5);
-	glm::vec3 m_lookat = glm::vec3(20, 2, 1);
+	glm::vec3 m_eye = glm::vec3(0, 50, 300);
+	glm::vec3 m_lookat = glm::vec3(0, 50, 0);
 
 	glm::mat4 m_view{};
 	glm::mat4 m_projection{};
