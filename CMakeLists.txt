@@ -69,6 +69,14 @@ target_link_libraries(Benchmarks PUBLIC fmt::fmt)
 target_link_libraries(Benchmarks PRIVATE benchmark::benchmark benchmark::benchmark_main)
 target_include_directories(Benchmarks PUBLIC ${Stb_INCLUDE_DIR})
 target_include_directories(Benchmarks PUBLIC include/)
+#if(MSVC)
+#    target_compile_options(Benchmarks PUBLIC /arch:AVX2 /Oi /GR- /EHs-c- /FA /Oy- /GL)
+#    target_link_options(Benchmarks PUBLIC /LTCG)
+#else()
+#    target_compile_options(Benchmarks PUBLIC "-march=haswell" "-masm=intel" -fno-rtti -fno-exceptions -save-temps
+#                -fno-omit-frame-pointer -flto -ffast-math)
+#    target_link_options(Benchmarks PUBLIC -flto)
+#endif()
 
 #ASSETS
 file(GLOB_RECURSE ASSET_FILES assets/*)
@@ -81,5 +89,5 @@ if (MSVC)
     add_compile_options(/O2 /fp:fast)
 else()
     # Optimize speed + add openMP
-    add_compile_options(-ffast-math -fopenmp=libomp)
+    add_compile_options(-O3 -ffast-math -fopenmp=libomp)
 endif()

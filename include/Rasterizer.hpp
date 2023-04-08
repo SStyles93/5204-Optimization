@@ -39,7 +39,6 @@ public:
 	std::vector<glm::vec3> GetFrameBuffer() { return m_FrameBuffer; }
 	std::vector<float> GetDepthBuffer() { return m_DepthBuffer; }
 
-
 private:
 	
 	Scene m_Scene{};

@@ -3,10 +3,10 @@
 #include "Rasterizer.hpp"
 #include "fmt/format.h"
 
-const uint32_t widths[] = { 1024u, 1920u, 3840u, 7680u };
-const uint32_t heights[] = { 768u, 1080u, 2160u, 4320u };
-const int fromRange = 0;
-const int toRange = 3;
+constexpr uint32_t widths[] = { 1024u, 1920u, 3840u, 7680u };
+constexpr uint32_t heights[] = { 768u, 1080u, 2160u, 4320u };
+constexpr int fromRange = 0;
+constexpr int toRange = 3;
 
 static void BM_Transform(benchmark::State& state, std::string_view objectName)
 {
