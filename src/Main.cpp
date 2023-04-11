@@ -23,13 +23,3 @@ int main()
 	auto file = fmt::format("../../render_{0}_{1}x{2}.png", objectName, rasterizer.DEFAULT_WIDTH, rasterizer.DEFAULT_HEIGHT);
 	rasterizer.RenderToPng(file);
 }
-
-//#include "oldTriangle.hpp"
-//#include "oldCube.hpp"
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "oldScene.hpp"
-//
-//int main()
-//{
-//	Scene();
-//}

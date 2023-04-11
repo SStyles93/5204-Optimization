@@ -58,7 +58,6 @@ float Rasterizer::EvaluateEdgeFunction(const glm::vec3& E, const glm::vec2& samp
 
 void Rasterizer::TransformScene()
 {
-	//auto start = std::chrono::high_resolution_clock::now();
 
 	for (int i = 0; i < m_Scene.primitives.size(); i++)
 	{
@@ -66,15 +65,6 @@ void Rasterizer::TransformScene()
 		ZoneScopedN("Meshes");
 #endif
 		const int32_t triCount = m_Scene.primitives[i].idxCount / 3;
-
-		//Exec.Times, sponza_7680x4320
-		//3920:10.00 NO OPTI
-		//81:05.02 omp
-		//01:00.08 BBTri
-		//00:26.16 BBTri + omp (no params)
-		//00:26.29 BBTri + omp static
-		//00:20.76 BBTri + omp dynamic
-		//00:14:15 BBTri + omp dynamic + Incremental Edge func.
 
 		// Loop over triangles in a given scene.primitives[i] and rasterize them
 		for (int32_t idx = 0; idx < triCount; idx++)
@@ -232,10 +222,6 @@ void Rasterizer::TransformScene()
 			}
 		}
 	}
-	//std::cout << "All Scene Meshes have been transformed\n";
-	//auto end = std::chrono::high_resolution_clock::now();
-	//auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start)/1000.0f;
-	//std::cout << duration.count() << " seconds" << std::endl;
 }
 
 void Rasterizer::RenderToPng(const std::string_view filename)
@@ -263,7 +249,6 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 	png_bytep row = (png_bytep)malloc(m_ScreenWidth * 3);
 
 	// Write the image data, row by row
-
 	for (auto y = 0; y < m_ScreenHeight; ++y)
 	{
 #if TRACY_ENABLE
@@ -288,12 +273,7 @@ void Rasterizer::RenderToPng(const std::string_view filename)
 
 		// Write the row buffer to the PNG file
 		png_write_row(png_ptr, row);
-		//std::cout << "Png at row: " << y << " was written\n";
 	}
-
-
-
-	//std::cout << "Png written\n";
 
 	// Clean up
 	free(row);

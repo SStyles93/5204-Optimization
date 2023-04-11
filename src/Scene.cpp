@@ -155,7 +155,6 @@ void Scene::LoadObject(std::string_view fileName)
 				primitives.push_back(mesh);
 
 		}
-		//std::cout << "Obj " << fileName << " loaded\n";
 	}
 	else
 	{
