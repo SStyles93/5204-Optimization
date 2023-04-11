@@ -11,11 +11,11 @@ public:
 	//static constexpr std::uint32_t DEFAULT_WIDTH = 1920u;
 	//static constexpr std::uint32_t DEFAULT_HEIGHT = 1080u;
 	
-	//static constexpr std::uint32_t DEFAULT_WIDTH = 3840u;
-	//static constexpr std::uint32_t DEFAULT_HEIGHT = 2160u;
+	static constexpr std::uint32_t DEFAULT_WIDTH = 3840u;
+	static constexpr std::uint32_t DEFAULT_HEIGHT = 2160u;
 	 
-	static constexpr std::uint32_t DEFAULT_WIDTH = 7680u;
-	static constexpr std::uint32_t DEFAULT_HEIGHT = 4320u;
+	//static constexpr std::uint32_t DEFAULT_WIDTH = 7680u;
+	//static constexpr std::uint32_t DEFAULT_HEIGHT = 4320u;
 
 	/// <summary>
 	/// Creates a rasterizer
